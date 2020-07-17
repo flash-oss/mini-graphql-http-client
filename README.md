@@ -10,13 +10,19 @@ However, it was too much for our humble needs. All we wanted is to do HTTP JSON 
 
 ApolloClient:
 
-* is more than 30Kb of Gzipped JavaScript;
-* it can't easily cache CMS queries like this: `{ about_us_page { title description cta cta_action } }`;
-* difficult to grasp how it behaves without deep diving into the (amazing!) docs.
+- is more than 30Kb of Gzipped JavaScript;
+- it can't easily cache CMS queries like this: `{ about_us_page { title description cta cta_action } }`;
+- difficult to grasp how it behaves without deep diving into the (amazing!) docs.
 
 There is a handful of alternatives: https://github.com/chentsulin/awesome-graphql#clients
 
 Although, half of them are bound to a framework (like React or AWS Amplify), another half don't have all the features we need: simple caching, small size, HTTP, no dependencies. Thus, this project was born.
+
+MiniGraphqlHttpClient:
+
+- 1Kb of Gzipped JavaScript;
+- Caches every query out there without trying to parse it and cache pieces separately;
+- Newbie friendly. Straightforward to use.
 
 ## How caching works
 
@@ -31,7 +37,7 @@ So, if the `MiniGraphqlHttpClient` sees identical GraphQL HTTP request (same que
 Install:
 
 ```shell script
-npm i mini-graphql-http-client node-fetch
+npm i mini-graphql-http-client
 ```
 
 ## Creating the client object instance
@@ -66,9 +72,10 @@ You must polyfil `fetch` and ES6 `Map` global variables.
 ```js
 try {
   const { data, errors } = await graphqlClient.query({
-    query: `{ hero { name height mass } }`
+    query: `{ hero { name height mass } }`,
   });
-  if (errors?.length) console.error("GraphQL response contains errors", errors);
+  if (errors && errors.length)
+    console.error("GraphQL response contains errors", errors);
 
   console.log(`Hero ${data.hero.name} height is ${data.hero.height}`);
 } catch (e) {
@@ -98,7 +105,7 @@ const graphqlClient = MiniGraphqlHttpClient({
   // Arbitrary headers to send with every HTTP request.
   headers: { Token: mySecureToken }, // Only "content-type":"application/json" is added by default.
 
-  // The well known `fetch` option. https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API 
+  // The well known `fetch` option. https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
   credentials: "omit", // default is "include"
 
   // Control various aspect of the cache via this argument.
@@ -113,11 +120,24 @@ const graphqlClient = MiniGraphqlHttpClient({
 
   // Useful callback. Useful for logging or debugging purposes.
   hooks: {
-    // A callback function called before each request.  
-    request({ query, variables, cacheDuration, uri, fetchOptions }) {/*...*/},
-    // A callback function called after each request.  
-    response({ query, variables, cacheDuration, uri, fetchOptions, response, json, error }) {/*...*/},  
-  }
+    // A callback function called before each request.
+    request({ query, variables, cacheDuration, uri, fetchOptions }) {
+      /*...*/
+    },
+    // A callback function called after each request.
+    response({
+      query,
+      variables,
+      cacheDuration,
+      uri,
+      fetchOptions,
+      response,
+      json,
+      error,
+    }) {
+      /*...*/
+    },
+  },
 });
 ```
 
@@ -143,13 +163,13 @@ const { data, errors } = await graphqlClient.query({
   headers: { version: "2" },
 
   // Override the default caching duration for this particular query.
-  cacheDuration: 60 * 60_000
-})
+  cacheDuration: 60 * 60_000,
+});
 ```
 
 ### .mutation({...})
 
-Send an HTTP request containing JSON data with two properties: `query` (not "mutation"!) and `variables`.
+Send an HTTP request containing JSON data with two properties: `query` (not "mutation"!) and `variables`. The responses are never cached.
 
 ```js
 const { data, errors } = await graphqlClient.mutation({
@@ -163,7 +183,7 @@ const { data, errors } = await graphqlClient.mutation({
 
   // Additional arbitrary request headers.
   headers: { version: "2" },
-})
+});
 ```
 
 ### .clearCache()
@@ -186,9 +206,9 @@ Use the POJO to create a new client (perhaps in the browser?).
 
 ```js
 const graphqlClient = MiniGraphqlHttpClient({
-    uri: "example.com/graphql",
-    cache: { jsonCache: cachePojo }
-})
+  uri: "example.com/graphql",
+  cache: { jsonCache: cachePojo },
+});
 ```
 
 # How-To's
@@ -203,8 +223,9 @@ const graphqlClient = MiniGraphqlHttpClient({
 
   hooks: {
     request: ({ query }) => console.log(query),
-    response: ({ json, error }) => error ? console.log(error) : console.log(json) 
-  }
+    response: ({ json, error }) =>
+      error ? console.log(error) : console.log(json),
+  },
 });
 ```
 
@@ -213,6 +234,12 @@ const graphqlClient = MiniGraphqlHttpClient({
 ```js
 const cacheMap = new Map();
 
-const graphqlClient1 = MiniGraphqlHttpClient({ uri: "example.com/graphql", cache: { map: cacheMap } });
-const graphqlClient2 = MiniGraphqlHttpClient({ uri: "example.com/graphql", cache: { map: cacheMap } });
+const graphqlClient1 = MiniGraphqlHttpClient({
+  uri: "example.com/graphql",
+  cache: { map: cacheMap },
+});
+const graphqlClient2 = MiniGraphqlHttpClient({
+  uri: "example.com/graphql",
+  cache: { map: cacheMap },
+});
 ```
