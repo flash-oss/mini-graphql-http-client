@@ -8,6 +8,7 @@
   "unpkg": "dist/mini-graphql-http-client.umd.js",
   "umd:main": "dist/mini-graphql-http-client.umd.js",
   "scripts": {
+    "prepublishOnly": "npm run build",
     "ci": "npm i && npm t",
     "test": "mocha --require esm",
     "build": "microbundle",
