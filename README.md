@@ -2,6 +2,10 @@
 
 Minimalistic (0 dependencies, 1Kb) GraphQL client for browsers and node.js with memory caching support
 
+
+[![gzip size](https://img.badgesize.io/https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js?compression=gzip&label=gzip)](https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js)
+[![brotli size](https://img.badgesize.io/https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js?compression=brotli&label=brotli)](https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js)
+
 ## Design thinking
 
 ApolloClient is a super cool GraphQL client. Plugable, universal, well documented, multi-protocol, smart caching, insane amount of features, etc. You should use it.
@@ -21,14 +25,18 @@ Although, half of them are bound to a framework (like React or AWS Amplify), ano
 MiniGraphqlHttpClient:
 
 - 1Kb of Gzipped JavaScript;
-- Caches every query out there without trying to parse it and cache pieces separately;
+- Caches every query out there without parsing it to cache pieces separately;
 - Newbie friendly. Straightforward to use.
 
 ## How caching works
 
+TL;DR: It's a dumb map. Key: 32bit hash of query string+variables, Value: JSON response.  
+
+Note! This is a key difference to all the other GraphQL client modules.
+
 By default, it caches every GraphQL query (not mutation!) response to the memory forever. You can adjust the caching duration(s). Responses containing errors are not cached obv.
 
-On every request a 32bit hash of your query+variables is generated and used as a key in a key-value map. This should be enough for a few thousand cache entries before seeing hash clashes.
+On every request a 32bit hash (up to 4,294,967,295 unique values) of your query+variables is generated and used as a key in a key-value map. This should be enough for a few thousand cache entries before seeing hash clashes.
 
 So, if the `MiniGraphqlHttpClient` sees identical GraphQL HTTP request (same query+variables) a cached value is returned, no HTTP requests performed.
 
@@ -77,7 +85,8 @@ try {
   if (errors && errors.length)
     console.error("GraphQL response contains errors", errors);
 
-  console.log(`Hero ${data.hero.name} height is ${data.hero.height}`);
+  if (data && data.hero)
+    console.log(`Hero ${data.hero.name} height is ${data.hero.height}`);
 } catch (e) {
   console.error("HTTP request failed", e);
 }
@@ -118,7 +127,7 @@ const graphqlClient = MiniGraphqlHttpClient({
     jsonCache: [], // Initialise your cache with a JSON data. See cacheToJSON() method.
   },
 
-  // Useful callback. Useful for logging or debugging purposes.
+  // Hook callbacks. Useful for logging or debugging purposes.
   hooks: {
     // A callback function called before each request.
     request({ query, variables, cacheDuration, uri, fetchOptions }) {
@@ -229,7 +238,7 @@ const graphqlClient = MiniGraphqlHttpClient({
 });
 ```
 
-## Use same cache in two clients
+## Having the same cache in two client instances
 
 ```js
 const cacheMap = new Map();
