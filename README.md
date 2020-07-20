@@ -6,7 +6,7 @@ Minimalistic (0 dependencies, 1Kb) GraphQL client for browsers and node.js with 
 [![gzip size](https://img.badgesize.io/https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js?compression=gzip&label=gzip)](https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js)
 [![brotli size](https://img.badgesize.io/https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js?compression=brotli&label=brotli)](https://unpkg.com/mini-graphql-http-client/dist/mini-graphql-http-client.modern.js)
 
-## Design thinking
+## Why this project exists?
 
 ApolloClient is a super cool GraphQL client. Plugable, universal, well documented, multi-protocol, smart caching, insane amount of features, etc. You should use it.
 
@@ -25,8 +25,8 @@ Although, half of them are bound to a framework (like React or AWS Amplify), ano
 MiniGraphqlHttpClient:
 
 - 1Kb of Gzipped JavaScript;
-- Caches every query out there without parsing it to cache pieces separately;
-- Newbie friendly. Straightforward to use.
+- Caches the whole query without parsing it;
+- Newbie friendly, straightforward to use.
 
 ## How caching works
 
