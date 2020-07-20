@@ -58,15 +58,15 @@ describe("MiniGraphqlHttpClient tests", () => {
         });
     });
 
-    describe("#mutation", () => {
-        it("should not cache mutation at all", async () => {
+    describe("#mutate", () => {
+        it("should not cache mutations at all", async () => {
             const fakeFetch = createFakeFetch();
             const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: fakeFetch });
 
-            await client.mutation({ mutation: "{ bla }" });
+            await client.mutate({ mutation: "{ bla }" });
             expect(fakeFetch.calls).to.equal(1);
 
-            await client.mutation({ mutation: "{ bla }" });
+            await client.mutate({ mutation: "{ bla }" });
             expect(fakeFetch.calls).to.equal(2);
         });
     });

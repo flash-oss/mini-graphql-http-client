@@ -58,7 +58,7 @@ const nativeFetch = typeof fetch === "undefined" ? null : fetch;
  * @param [hooks.request] {requestHook} A callback executed before doing the HTTP request.
  * @param [hooks.response] {responseHook} A callback executed after the HTTP request.
  * @kind function
- * @return {{query:Function, mutation:Function, clearCache:Function, cacheToJSON:Function}}
+ * @return {{query:Function, mutate:Function, clearCache:Function, cacheToJSON:Function}}
  */
 export default function MiniGraphqlHttpClient({
     uri,
@@ -188,7 +188,7 @@ export default function MiniGraphqlHttpClient({
          * @return HTTP response body as JS object
          * @kind member
          */
-        mutation(options) {
+        mutate(options) {
             // There is not much difference yet.
             options.query = options.mutation;
             options.cacheDuration = 0;

@@ -176,14 +176,14 @@ const { data, errors } = await graphqlClient.query({
 });
 ```
 
-### .mutation({...})
+### .mutate({...})
 
 Send an HTTP request containing JSON data with two properties: `query` (not "mutation"!) and `variables`. The responses are never cached.
 
 ```js
-const { data, errors } = await graphqlClient.mutation({
+const { data, errors } = await graphqlClient.mutate({
   // This is the only required argument
-  query: `mutation($input: CreateOrderInput) { createOrder(input: $input) { success code message } }`,
+  mutation: `mutation($input: CreateOrderInput) { createOrder(input: $input) { success code message } }`,
 
   // All the below are optional.
 
