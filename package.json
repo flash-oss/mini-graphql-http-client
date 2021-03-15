@@ -4,6 +4,7 @@
   "description": "Minimalistic (0 dependencies, 1Kb) GraphQL client for browsers and node.js with memory caching support",
   "source": "src/mini-graphql-http-client.js",
   "main": "dist/mini-graphql-http-client.js",
+  "exports": "./dist/mini-graphql-http-client.modern.js",
   "module": "dist/mini-graphql-http-client.module.js",
   "unpkg": "dist/mini-graphql-http-client.umd.js",
   "umd:main": "dist/mini-graphql-http-client.umd.js",
@@ -35,9 +36,12 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "esm": "^3.2.25",
-    "microbundle": "^0.12.3",
-    "mocha": "^8.0.1",
-    "prettier": "^2.0.5"
+    "micro": "^9.3.4",
+    "microbundle": "^0.13.0",
+    "mocha": "^8.2.1",
+    "node-fetch": "^2.6.1",
+    "prettier": "^2.2.1",
+    "test-listen": "^1.1.0"
   },
   "files": [
     "src",
