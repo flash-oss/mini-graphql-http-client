@@ -24,7 +24,7 @@ Although, half of them are bound to a framework (like React or AWS Amplify), ano
 
 MiniGraphqlHttpClient:
 
-- 1Kb of Gzipped JavaScript;
+- **1Kb** of Gzipped JavaScript;
 - Caches the whole query without parsing it;
 - Newbie friendly, straightforward to use.
 
