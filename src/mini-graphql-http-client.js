@@ -50,6 +50,7 @@ const nativeFetch = typeof fetch === "undefined" ? null : fetch;
  * @param uri {String} The GraphQL HTTP endpoint. Like https://example.com/graphql
  * @param [method="POST"] {String} the HTTP method for all the request. Default it "POST"
  * @param [fetch] {Function} Fetch implementation. You must provide it if global `fetch` is missing.
+ * @param retry {int} Numbers of retry attempts on 5xx response
  * @param [headers] {Object} HTTP headers
  * @param [credentials="include"] {String} The `fetch` argument to include cookies into the request.
  * @param [cache.duration=Number.MAX_SAFE_INTEGER] {Number} Cache duration settings for queries.
@@ -64,6 +65,7 @@ export default function MiniGraphqlHttpClient({
     uri,
     method = "POST",
     fetch = nativeFetch,
+    retry = 0,
     headers: mainHeaders = {},
     credentials = "include", // instruct browser to set cookies on request
     cache,
@@ -136,15 +138,24 @@ export default function MiniGraphqlHttpClient({
             }
 
             let response, json, error;
-            try {
-                // Response object
-                response = await fetch(uri, fetchOptions);
-                // Check if status is not 4XX or 5XX.
-                if (response.ok) json = await response.json();
-                else error = new Error(`${response.status} ${response.statusText}`);
-            } catch (e) {
-                error = e;
-            }
+            for (let i = 0; i < retry + 1; i++) {
+                try {
+                    // Response object
+                    response = await fetch(uri, fetchOptions);
+                    // Check if status is not 5XX.
+                    if (response.status <= 500) {
+                        continue
+                    }
+                    // Check if status is not 4XX.
+                    else if (response.ok) {
+                        json = await response.json();
+                        break
+                    }
+                    else error = new Error(`${response.status} ${response.statusText}`);
+                } catch (e) {
+                    error = e;
+                }
+            };
 
             // Post-request hook
             if (hooks && isFunction(hooks.response)) {
