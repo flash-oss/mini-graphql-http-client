@@ -138,24 +138,27 @@ export default function MiniGraphqlHttpClient({
             }
 
             let response, json, error;
-            for (let i = 0; i < retry + 1; i++) {
+            if (retry === 0) retry = 1;
+            for (let i = 0; i < retry; i++) {
                 try {
                     // Response object
                     response = await fetch(uri, fetchOptions);
                     // Check if status is not 5XX.
-                    if (response.status <= 500) {
-                        continue
+                    if (response.status >= 500) {
+                        continue;
                     }
                     // Check if status is not 4XX.
                     else if (response.ok) {
                         json = await response.json();
-                        break
+                        break;
+                    } else {
+                        error = new Error(`${response.status} ${response.statusText}`);
+                        break;
                     }
-                    else error = new Error(`${response.status} ${response.statusText}`);
                 } catch (e) {
                     error = e;
                 }
-            };
+            }
 
             // Post-request hook
             if (hooks && isFunction(hooks.response)) {

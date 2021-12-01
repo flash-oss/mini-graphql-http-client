@@ -4,7 +4,10 @@ import MiniGraphqlHttpClient from "../src/mini-graphql-http-client";
 describe("MiniGraphqlHttpClient tests", () => {
     describe("creating instance", () => {
         it("should throw if URI or fetch was not provided", () => {
+            //TODO this is clearly not working
             expect(() => MiniGraphqlHttpClient()).to.throw();
+            expect(() => MiniGraphqlHttpClient()).to.not.throw();
+            expect(() => MiniGraphqlHttpClient()).to.be.equal("this is not working");
             expect(() => MiniGraphqlHttpClient({ fetch: () => {} })).to.throw(/uri/);
             expect(() => MiniGraphqlHttpClient({ uri: "a" })).to.throw(/fetch/);
             expect(() => MiniGraphqlHttpClient({ uri: "a", fetch: "not a function" })).to.throw(/fetch/);
@@ -91,6 +94,55 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(fakeFetch2.calls).to.equal(0); // no calls done, the JSON was retrieved from the cache
             expect(cache2.map.size).to.equal(1);
             expect(cache2.map.get("2421565178")).to.have.deep.property("json", { bla: 1 });
+        });
+    });
+
+    const createErrorFakeFetch = () => {
+        function fakeFetch() {
+            const responseArray = [
+                { ok: false, status: 500, json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, json: () => ({ bla: 1 }) },
+                { ok: true, status: 200, json: () => ({ bla: 1 }) },
+            ];
+            fakeFetch.calls += 1;
+            return responseArray[fakeFetch.calls];
+        }
+        fakeFetch.calls = 0;
+        return fakeFetch;
+    };
+
+    describe("#Retry", () => {
+        it("should make 6 retries on 5xx error response, but stops on 4 try, because it's get good response", async function () {
+            let numberOfRetries = 6;
+            const cache = {};
+            const fakeFetch = createErrorFakeFetch();
+            const client = MiniGraphqlHttpClient({
+                uri: "https://a.aa",
+                fetch: fakeFetch,
+                cache,
+                retry: numberOfRetries,
+            });
+
+            await client.query({ query: "{ bla }" }).catch();
+
+            expect(fakeFetch.calls).to.be.equal(4);
+        });
+
+        it("should make 3 retries on 5xx error response and return error", async function () {
+            let numberOfRetries = 3;
+            const cache = {};
+            const fakeFetch = createErrorFakeFetch();
+            const client = MiniGraphqlHttpClient({
+                uri: "https://a.aa",
+                fetch: fakeFetch,
+                cache,
+                retry: numberOfRetries,
+            });
+
+            await client.query({ query: "{ bla }" }).catch();
+            expect(fakeFetch.calls).to.be.equal(3);
         });
     });
 });
