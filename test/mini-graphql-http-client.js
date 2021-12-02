@@ -97,23 +97,26 @@ describe("MiniGraphqlHttpClient tests", () => {
     const createBadAndGoodFakeFetch = () => {
         function fakeFetch() {
             const responseArray = [
-                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
-                { ok: false, status: 400, statusText: "error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 400, statusText: "Bad Request", json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
             ];
+            fakeFetch.startIndex += 1;
             fakeFetch.calls += 1;
-            return responseArray[fakeFetch.calls];
+            return responseArray[fakeFetch.startIndex];
         }
-        fakeFetch.calls = -1;
+        fakeFetch.startIndex = 0;
+        fakeFetch.calls = 0;
         return fakeFetch;
     };
 
-    describe("#Retry", () => {
-        it("should make 6 retries on 5xx error response, but stops on 5 try, because it's get good response", async function () {
+    describe("#retry", () => {
+        it("should try making 6 retries on 5xx responses but stop on 5-th because of good response", async function () {
             let wasError = false;
             let numberOfRetries = 6;
             const cache = {};
@@ -129,11 +132,11 @@ describe("MiniGraphqlHttpClient tests", () => {
                 wasError = true;
             });
 
-            expect(fakeFetch.calls).to.be.equal(4);
+            expect(fakeFetch.calls).to.be.equal(5);
             expect(wasError).to.be.false;
         });
 
-        it("should make 3 retries on 5xx error response and return error", async function () {
+        it("should make 3 retries on 5xx error response and return error on 3 try", async function () {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
@@ -159,7 +162,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let numberOfRetries = 3;
             const cache = {};
             const fakeFetch = createBadAndGoodFakeFetch();
-            fakeFetch.calls = 4; // next call will be on 400 error code
+            fakeFetch.startIndex = 5; // next call will be on 400 error code
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
@@ -172,9 +175,9 @@ describe("MiniGraphqlHttpClient tests", () => {
                 wasError = true;
             });
 
-            expect(errorText).to.be.equal("400 error");
+            expect(errorText).to.be.equal("400 Bad Request");
             expect(wasError).to.be.true;
-            expect(fakeFetch.calls).to.be.equal(5);
+            expect(fakeFetch.calls).to.be.equal(1);
         });
 
         it("should make 5 retries on fetch error and return good response on 5 fetch", async function () {
