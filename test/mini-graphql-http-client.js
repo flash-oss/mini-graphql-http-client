@@ -97,12 +97,12 @@ describe("MiniGraphqlHttpClient tests", () => {
     const createBadAndGoodFakeFetch = () => {
         function fakeFetch() {
             const responseArray = [
-                { ok: false, status: 500, json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
+                { ok: false, status: 500, statusText: "error", json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
-                { ok: false, status: 400, json: () => ({ bla: 1 }) },
+                { ok: false, status: 400, statusText: "error", json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
             ];
             fakeFetch.calls += 1;
@@ -168,11 +168,11 @@ describe("MiniGraphqlHttpClient tests", () => {
             });
 
             await client.query({ query: "{ bla }" }).catch((error) => {
-                errorText = String(error);
+                errorText = error.message;
                 wasError = true;
             });
 
-            expect(errorText).to.be.equal("Error: 400 undefined");
+            expect(errorText).to.be.equal("400 error");
             expect(wasError).to.be.true;
             expect(fakeFetch.calls).to.be.equal(5);
         });
@@ -196,11 +196,11 @@ describe("MiniGraphqlHttpClient tests", () => {
             });
 
             await client.query({ query: "{ bla }" }).catch((error) => {
-                errorText = String(error);
+                errorText = error.message;
                 wasError = true;
             });
 
-            expect(errorText).to.be.not.equal("Error: error response");
+            expect(errorText).to.be.not.equal("error response");
             expect(wasError).to.be.false;
             expect(counter).to.be.equal(5);
         });
