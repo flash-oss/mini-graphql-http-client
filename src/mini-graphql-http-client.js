@@ -50,7 +50,7 @@ const nativeFetch = typeof fetch === "undefined" ? null : fetch;
  * @param uri {String} The GraphQL HTTP endpoint. Like https://example.com/graphql
  * @param [method="POST"] {String} the HTTP method for all the request. Default it "POST"
  * @param [fetch] {Function} Fetch implementation. You must provide it if global `fetch` is missing.
- * @param retry {int} Numbers of retry attempts on 5xx response
+ * @param retry {Number} Numbers of retry attempts on 5xx response
  * @param [headers] {Object} HTTP headers
  * @param [credentials="include"] {String} The `fetch` argument to include cookies into the request.
  * @param [cache.duration=Number.MAX_SAFE_INTEGER] {Number} Cache duration settings for queries.
