@@ -6,8 +6,6 @@ describe("MiniGraphqlHttpClient tests", () => {
         it("should throw if URI or fetch was not provided", () => {
             //TODO this is clearly not working
             expect(() => MiniGraphqlHttpClient()).to.throw();
-            expect(() => MiniGraphqlHttpClient()).to.not.throw();
-            expect(() => MiniGraphqlHttpClient()).to.be.equal("this is not working");
             expect(() => MiniGraphqlHttpClient({ fetch: () => {} })).to.throw(/uri/);
             expect(() => MiniGraphqlHttpClient({ uri: "a" })).to.throw(/fetch/);
             expect(() => MiniGraphqlHttpClient({ uri: "a", fetch: "not a function" })).to.throw(/fetch/);
@@ -97,7 +95,7 @@ describe("MiniGraphqlHttpClient tests", () => {
         });
     });
 
-    const createErrorFakeFetch = () => {
+    const createBadAndGoodFakeFetch = () => {
         function fakeFetch() {
             const responseArray = [
                 { ok: false, status: 500, json: () => ({ bla: 1 }) },
@@ -106,6 +104,7 @@ describe("MiniGraphqlHttpClient tests", () => {
                 { ok: false, status: 500, json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
                 { ok: false, status: 400, json: () => ({ bla: 1 }) },
+                { ok: true, status: 200, json: () => ({ bla: 1 }) },
             ];
             fakeFetch.calls += 1;
             return responseArray[fakeFetch.calls];
@@ -119,7 +118,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let wasError = false;
             let numberOfRetries = 6;
             const cache = {};
-            const fakeFetch = createErrorFakeFetch();
+            const fakeFetch = createBadAndGoodFakeFetch();
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
@@ -139,7 +138,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
-            const fakeFetch = createErrorFakeFetch();
+            const fakeFetch = createBadAndGoodFakeFetch();
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
@@ -151,7 +150,7 @@ describe("MiniGraphqlHttpClient tests", () => {
                 wasError = true;
             });
 
-            expect(fakeFetch.calls).to.be.equal(2);
+            expect(fakeFetch.calls).to.be.equal(3);
             expect(wasError).to.be.true;
         });
 
@@ -160,7 +159,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
-            const fakeFetch = createErrorFakeFetch();
+            const fakeFetch = createBadAndGoodFakeFetch();
             fakeFetch.calls = 4; // next call will be on 400 error code
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
@@ -177,6 +176,34 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(errorText).to.be.equal("Error: 400 undefined");
             expect(wasError).to.be.true;
             expect(fakeFetch.calls).to.be.equal(5);
+        });
+
+        it("should make 5 retries on fetch error nad return good response on 5 fetch", async function () {
+            let errorText;
+            let wasError = false;
+            let counter = 0;
+            const createErrorFakeFetch = () => {
+                counter += 1;
+                if (counter === 5) return { ok: true, status: 200, json: () => ({ bla: 1 }) };
+                throw new Error("error response");
+            };
+            let numberOfRetries = 7;
+            const cache = {};
+            const client = MiniGraphqlHttpClient({
+                uri: "https://a.aa",
+                fetch: createErrorFakeFetch,
+                cache,
+                retry: numberOfRetries,
+            });
+
+            await client.query({ query: "{ bla }" }).catch((error) => {
+                errorText = String(error);
+                wasError = true;
+            });
+
+            expect(errorText).to.be.not.equal("Error: error response");
+            expect(wasError).to.be.false;
+            expect(counter).to.be.equal(5);
         });
     });
 });
