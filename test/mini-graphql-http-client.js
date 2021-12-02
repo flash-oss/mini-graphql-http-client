@@ -105,16 +105,18 @@ describe("MiniGraphqlHttpClient tests", () => {
                 { ok: false, status: 500, json: () => ({ bla: 1 }) },
                 { ok: false, status: 500, json: () => ({ bla: 1 }) },
                 { ok: true, status: 200, json: () => ({ bla: 1 }) },
+                { ok: false, status: 400, json: () => ({ bla: 1 }) },
             ];
             fakeFetch.calls += 1;
             return responseArray[fakeFetch.calls];
         }
-        fakeFetch.calls = 0;
+        fakeFetch.calls = -1;
         return fakeFetch;
     };
 
     describe("#Retry", () => {
-        it("should make 6 retries on 5xx error response, but stops on 4 try, because it's get good response", async function () {
+        it("should make 6 retries on 5xx error response, but stops on 5 try, because it's get good response", async function () {
+            let wasError = false;
             let numberOfRetries = 6;
             const cache = {};
             const fakeFetch = createErrorFakeFetch();
@@ -125,12 +127,16 @@ describe("MiniGraphqlHttpClient tests", () => {
                 retry: numberOfRetries,
             });
 
-            await client.query({ query: "{ bla }" }).catch();
+            await client.query({ query: "{ bla }" }).catch(() => {
+                wasError = true;
+            });
 
             expect(fakeFetch.calls).to.be.equal(4);
+            expect(wasError).to.be.false;
         });
 
         it("should make 3 retries on 5xx error response and return error", async function () {
+            let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
             const fakeFetch = createErrorFakeFetch();
@@ -141,8 +147,36 @@ describe("MiniGraphqlHttpClient tests", () => {
                 retry: numberOfRetries,
             });
 
-            await client.query({ query: "{ bla }" }).catch();
-            expect(fakeFetch.calls).to.be.equal(3);
+            await client.query({ query: "{ bla }" }).catch(() => {
+                wasError = true;
+            });
+
+            expect(fakeFetch.calls).to.be.equal(2);
+            expect(wasError).to.be.true;
+        });
+
+        it("should make 3 retries on 4xx error response and return error after 1st try", async function () {
+            let errorText;
+            let wasError = false;
+            let numberOfRetries = 3;
+            const cache = {};
+            const fakeFetch = createErrorFakeFetch();
+            fakeFetch.calls = 4; // next call will be on 400 error code
+            const client = MiniGraphqlHttpClient({
+                uri: "https://a.aa",
+                fetch: fakeFetch,
+                cache,
+                retry: numberOfRetries,
+            });
+
+            await client.query({ query: "{ bla }" }).catch((error) => {
+                errorText = String(error);
+                wasError = true;
+            });
+
+            expect(errorText).to.be.equal("Error: 400 undefined");
+            expect(wasError).to.be.true;
+            expect(fakeFetch.calls).to.be.equal(5);
         });
     });
 });
