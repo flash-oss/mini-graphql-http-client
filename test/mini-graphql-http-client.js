@@ -136,7 +136,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(wasError).to.be.false;
         });
 
-        it("should make 3 retries on 5xx error response and return error on 3 retry, it's will 4 try", async function () {
+        it("should make 3 retries on 5xx error response and return error on 3 retry, it's will be 4 try", async function () {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
