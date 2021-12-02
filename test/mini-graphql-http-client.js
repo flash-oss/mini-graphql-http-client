@@ -172,17 +172,13 @@ describe("MiniGraphqlHttpClient tests", () => {
         it("should make 5 retries on fetch error and return good response on 5 fetch", async function () {
             let errorText;
             let wasError = false;
-            let counter = 0;
-            const createErrorFakeFetch = () => {
-                counter += 1;
-                if (counter === 5) return { ok: true, status: 200, json: () => ({ bla: 1 }) };
-                throw new Error("error response");
-            };
+            const fakeFetch = createFakeFetch([500, 500, 500, 500, 200]);
+
             let numberOfRetries = 7;
             const cache = {};
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
-                fetch: createErrorFakeFetch,
+                fetch: fakeFetch,
                 cache,
                 retry: numberOfRetries,
             });
@@ -194,7 +190,7 @@ describe("MiniGraphqlHttpClient tests", () => {
 
             expect(errorText).to.be.not.equal("error response");
             expect(wasError).to.be.false;
-            expect(counter).to.be.equal(5);
+            expect(fakeFetch.calls).to.be.equal(5);
         });
     });
 });
