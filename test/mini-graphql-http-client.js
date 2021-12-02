@@ -177,7 +177,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(fakeFetch.calls).to.be.equal(5);
         });
 
-        it("should make 5 retries on fetch error nad return good response on 5 fetch", async function () {
+        it("should make 5 retries on fetch error and return good response on 5 fetch", async function () {
             let errorText;
             let wasError = false;
             let counter = 0;
