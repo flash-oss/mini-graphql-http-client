@@ -138,8 +138,7 @@ export default function MiniGraphqlHttpClient({
             }
 
             let response, json, error;
-            if (retry === 0) retry = 1; // if retry is 1 and i <= retry we will give 2 retries
-            for (let i = 0; i < retry; i++) {
+            for (let i = 0; i <= retry; i++) {
                 try {
                     error = undefined;
                     // Response object

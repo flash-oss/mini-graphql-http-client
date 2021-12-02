@@ -116,7 +116,7 @@ describe("MiniGraphqlHttpClient tests", () => {
     };
 
     describe("#retry", () => {
-        it("should try making 6 retries on 5xx responses but stop on 5-th because of good response", async function () {
+        it("should try making 6 retries on 5xx responses but stop on 5-th try because of good response", async function () {
             let wasError = false;
             let numberOfRetries = 6;
             const cache = {};
@@ -136,7 +136,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(wasError).to.be.false;
         });
 
-        it("should make 3 retries on 5xx error response and return error on 3 try", async function () {
+        it("should make 3 retries on 5xx error response and return error on 3 retry, it's will 4 try", async function () {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
@@ -152,7 +152,7 @@ describe("MiniGraphqlHttpClient tests", () => {
                 wasError = true;
             });
 
-            expect(fakeFetch.calls).to.be.equal(3);
+            expect(fakeFetch.calls).to.be.equal(4);
             expect(wasError).to.be.true;
         });
 
