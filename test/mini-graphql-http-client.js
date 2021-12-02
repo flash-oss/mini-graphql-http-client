@@ -22,10 +22,21 @@ describe("MiniGraphqlHttpClient tests", () => {
         });
     });
 
-    const createFakeFetch = () => {
+    /*    const createFakeFetch = () => {
         function fakeFetch() {
             fakeFetch.calls += 1;
             return { ok: true, json: () => ({ bla: 1 }) };
+        }
+        fakeFetch.calls = 0;
+        return fakeFetch;
+    };*/
+
+    const statusTexts = { 200: "OK", 400: "Bad Request", 500: "Internal Server Error" };
+    const createFakeFetch = (statusCodes) => {
+        function fakeFetch() {
+            const status = statusCodes[fakeFetch.calls];
+            fakeFetch.calls += 1;
+            return { ok: status === 200, status, statusText: statusTexts[status], json: () => ({ bla: 1 }) };
         }
         fakeFetch.calls = 0;
         return fakeFetch;
@@ -34,7 +45,7 @@ describe("MiniGraphqlHttpClient tests", () => {
     describe("#clearCache", () => {
         it("should reset cache when called", async () => {
             const cache = {};
-            const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: createFakeFetch(), cache });
+            const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: createFakeFetch([200]), cache });
             await client.query({ query: "{ bla }" });
 
             expect(cache.map.size).to.not.equal(0);
@@ -47,7 +58,7 @@ describe("MiniGraphqlHttpClient tests", () => {
 
     describe("#query", () => {
         it("should return cached JS object by default", async () => {
-            const fakeFetch = createFakeFetch();
+            const fakeFetch = createFakeFetch([200]);
             const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: fakeFetch });
 
             await client.query({ query: "{ bla }" });
@@ -60,7 +71,7 @@ describe("MiniGraphqlHttpClient tests", () => {
 
     describe("#mutate", () => {
         it("should not cache mutations at all", async () => {
-            const fakeFetch = createFakeFetch();
+            const fakeFetch = createFakeFetch([200, 200]);
             const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: fakeFetch });
 
             await client.mutate({ mutation: "{ bla }" });
@@ -74,7 +85,7 @@ describe("MiniGraphqlHttpClient tests", () => {
     describe("#cacheToJSON", () => {
         it("should serialise cache to JS objects and deserialise back", async () => {
             const cache = {};
-            const fakeFetch = createFakeFetch();
+            const fakeFetch = createFakeFetch([200]);
             const client = MiniGraphqlHttpClient({ uri: "https://a.aa", fetch: fakeFetch, cache });
             await client.query({ query: "{ bla }" });
 
@@ -94,33 +105,12 @@ describe("MiniGraphqlHttpClient tests", () => {
         });
     });
 
-    const createBadAndGoodFakeFetch = () => {
-        function fakeFetch() {
-            const responseArray = [
-                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
-                { ok: false, status: 500, statusText: "Internal Server Error", json: () => ({ bla: 1 }) },
-                { ok: true, status: 200, json: () => ({ bla: 1 }) },
-                { ok: false, status: 400, statusText: "Bad Request", json: () => ({ bla: 1 }) },
-                { ok: true, status: 200, json: () => ({ bla: 1 }) },
-            ];
-            fakeFetch.startIndex += 1;
-            fakeFetch.calls += 1;
-            return responseArray[fakeFetch.startIndex];
-        }
-        fakeFetch.startIndex = 0;
-        fakeFetch.calls = 0;
-        return fakeFetch;
-    };
-
     describe("#retry", () => {
         it("should try making 6 retries on 5xx responses but stop on 5-th try because of good response", async function () {
             let wasError = false;
             let numberOfRetries = 6;
             const cache = {};
-            const fakeFetch = createBadAndGoodFakeFetch();
+            const fakeFetch = createFakeFetch([500, 500, 500, 500, 200, 500]);
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
@@ -140,7 +130,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
-            const fakeFetch = createBadAndGoodFakeFetch();
+            const fakeFetch = createFakeFetch([500, 500, 500, 500, 200]);
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
@@ -161,8 +151,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             let wasError = false;
             let numberOfRetries = 3;
             const cache = {};
-            const fakeFetch = createBadAndGoodFakeFetch();
-            fakeFetch.startIndex = 5; // next call will be on 400 error code
+            const fakeFetch = createFakeFetch([400, 500, 200]);
             const client = MiniGraphqlHttpClient({
                 uri: "https://a.aa",
                 fetch: fakeFetch,
