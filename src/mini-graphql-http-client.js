@@ -144,7 +144,7 @@ export default function MiniGraphqlHttpClient({
                     // Response object
                     response = await fetch(uri, fetchOptions);
 
-                    // Check if status is not 5XX.
+                    // Check if status is 5xx
                     if (response.status >= 500) {
                         continue;
                     }

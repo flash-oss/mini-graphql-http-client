@@ -153,7 +153,7 @@ describe("MiniGraphqlHttpClient tests", () => {
             expect(wasError).to.be.true;
         });
 
-        it("should make 3 retries on 4xx error response and return error after 1st try", async function () {
+        it("should not make retries on 4xx error response and return error after 1st try", async function () {
             let errorText;
             let wasError = false;
             let numberOfRetries = 3;
