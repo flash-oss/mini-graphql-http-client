@@ -4,7 +4,6 @@ import MiniGraphqlHttpClient from "../src/mini-graphql-http-client";
 describe("MiniGraphqlHttpClient tests", () => {
     describe("creating instance", () => {
         it("should throw if URI or fetch was not provided", () => {
-            //TODO this is clearly not working
             expect(() => MiniGraphqlHttpClient()).to.throw();
             expect(() => MiniGraphqlHttpClient({ fetch: () => {} })).to.throw(/uri/);
             expect(() => MiniGraphqlHttpClient({ uri: "a" })).to.throw(/fetch/);
