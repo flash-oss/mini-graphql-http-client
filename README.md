@@ -111,8 +111,8 @@ const graphqlClient = MiniGraphqlHttpClient({
   // The `fetch` implementation.
   fetch: require("unfetch"), // Will attempt to use global `fetch`. You must provide `fetch` in Node.js.
 
-  // Retry
-  retry: 0, // Number of retries if HTTP request fails - network error or 5xx response
+  // Number of retries if HTTP request fails - network error or 5xx response.
+  retry: 2, // Default is 0. The value 2 would mean we do total 3 attempts. 
     
   // Arbitrary headers to send with every HTTP request.
   headers: { Token: mySecureToken }, // Only "content-type":"application/json" is added by default.
