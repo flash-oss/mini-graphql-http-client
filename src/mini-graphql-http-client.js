@@ -50,11 +50,14 @@ const nativeFetch = typeof fetch === "undefined" ? null : fetch;
  * @param uri {String} The GraphQL HTTP endpoint. Like https://example.com/graphql
  * @param [method="POST"] {String} the HTTP method for all the request. Default it "POST"
  * @param [fetch] {Function} Fetch implementation. You must provide it if global `fetch` is missing.
+ * @param [retry=0] {Number} Numbers of retry attempts on 5xx response or network errors
  * @param [headers] {Object} HTTP headers
  * @param [credentials="include"] {String} The `fetch` argument to include cookies into the request.
+ * @param [cache] {Object} Caching options
  * @param [cache.duration=Number.MAX_SAFE_INTEGER] {Number} Cache duration settings for queries.
  * @param [cache.map] {Map} Initialise your cache with the ES6 Map object. Overrides the `cache.jsonCache`.
  * @param [cache.jsonCache] {Array} Initialise your cache with JSON (aka POJO).
+ * @param [hooks] {Object} Hooks options
  * @param [hooks.request] {requestHook} A callback executed before doing the HTTP request.
  * @param [hooks.response] {responseHook} A callback executed after the HTTP request.
  * @kind function
@@ -64,6 +67,7 @@ export default function MiniGraphqlHttpClient({
     uri,
     method = "POST",
     fetch = nativeFetch,
+    retry = 0,
     headers: mainHeaders = {},
     credentials = "include", // instruct browser to set cookies on request
     cache,
@@ -136,14 +140,23 @@ export default function MiniGraphqlHttpClient({
             }
 
             let response, json, error;
-            try {
-                // Response object
-                response = await fetch(uri, fetchOptions);
-                // Check if status is not 4XX or 5XX.
-                if (response.ok) json = await response.json();
-                else error = new Error(`${response.status} ${response.statusText}`);
-            } catch (e) {
-                error = e;
+            for (let i = 0; i <= retry; i++) {
+                try {
+                    error = undefined;
+                    // Response object
+                    response = await fetch(uri, fetchOptions);
+                    // Check if status is 5xx
+                    if (response.status >= 500) continue;
+                    // Assuming 200 OK responses are all JSON.
+                    if (response.ok) json = await response.json();
+                    break;
+                } catch (e) {
+                    error = e;
+                }
+            }
+
+            if (!json && !error) {
+                error = new Error(`${response.status} ${response.statusText}`);
             }
 
             // Post-request hook
