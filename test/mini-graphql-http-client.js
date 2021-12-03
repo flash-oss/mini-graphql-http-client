@@ -161,7 +161,7 @@ describe("MiniGraphqlHttpClient tests", () => {
                 error = e;
             });
 
-            expect(error.message).to.be.not.equal("error response");
+            expect(error.message).to.be.equal("No route to host");
             expect(fakeFetch.calls).to.be.equal(8);
         });
     });
