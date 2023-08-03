@@ -1,12 +1,13 @@
-const { expect } = require("chai");
-import MiniGraphqlHttpClient from "../src/mini-graphql-http-client";
+import chai from "chai";
+const expect = chai.expect;
+import MiniGraphqlHttpClient from "../src/mini-graphql-http-client.js";
 
 describe("MiniGraphqlHttpClient tests", () => {
     describe("creating instance", () => {
         it("should throw if URI or fetch was not provided", () => {
             expect(() => MiniGraphqlHttpClient()).to.throw();
             expect(() => MiniGraphqlHttpClient({ fetch: () => {} })).to.throw(/uri/);
-            expect(() => MiniGraphqlHttpClient({ uri: "a" })).to.throw(/fetch/);
+            expect(() => MiniGraphqlHttpClient({ uri: "a", fetch: null })).to.throw(/fetch/);
             expect(() => MiniGraphqlHttpClient({ uri: "a", fetch: "not a function" })).to.throw(/fetch/);
             expect(() => MiniGraphqlHttpClient({ uri: /not a string/, fetch: () => {} })).to.throw(/uri/);
             expect(() => MiniGraphqlHttpClient({ uri: "my string", fetch: () => {} })).to.not.throw();
