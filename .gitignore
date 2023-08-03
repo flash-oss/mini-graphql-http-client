@@ -106,3 +106,4 @@ dist
 package-lock.json
 .npmrc
 .idea
+.DS_Store
