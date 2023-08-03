@@ -1,6 +1,6 @@
 {
   "name": "mini-graphql-http-client",
-  "version": "2.0.0-0",
+  "version": "2.0.0",
   "description": "Minimalistic (0 dependencies, 1Kb) GraphQL client for browsers and node.js with memory caching support",
   "type": "module",
   "source": "src/mini-graphql-http-client.js",
