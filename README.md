@@ -8,7 +8,7 @@ Minimalistic (0 dependencies, 1Kb) GraphQL client for browsers and node.js with 
 
 ## Why this project exists?
 
-ApolloClient is a super cool GraphQL client. Plugable, universal, well documented, multi-protocol, smart caching, insane amount of features, etc. You should use it.
+ApolloClient is a super cool GraphQL client. Pluggable, universal, well documented, multi-protocol, smart caching, insane amount of features, etc. You should use it.
 
 However, it was too much for our humble needs. All we wanted is to do HTTP JSON calls which are cached in memory.
 
@@ -109,7 +109,7 @@ const graphqlClient = MiniGraphqlHttpClient({
   method: "PUT", // default is "POST"
 
   // The `fetch` implementation.
-  fetch: require("unfetch"), // Will attempt to use global `fetch`. You must provide `fetch` in Node.js.
+  fetch: require("unfetch"), // Will attempt to use global `fetch`.
 
   // Number of retries if HTTP request fails - network error or 5xx response.
   retry: 2, // Default is 0. The value 2 would mean we do total 3 attempts. 
